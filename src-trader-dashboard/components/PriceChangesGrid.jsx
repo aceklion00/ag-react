@@ -1,5 +1,8 @@
 import React, {Component} from "react";
 
+// take this line out if you do not want to use ag-Grid-Enterprise
+import "ag-grid-enterprise";
+
 import {AgGridReact} from "ag-grid-react";
 
 import map from "lodash/map";
@@ -41,6 +44,15 @@ export default class extends Component {
                     cellFormatter: this.numberFormatter,
                     cellRenderer: 'animateShowChange',
                     cellStyle: {'text-align': 'right'}
+                },
+                {
+                    headerName: 'Recommendation',
+                    field: 'recommendation',
+                    cellEditor: 'richSelect',
+                    cellEditorParams: {
+                        values: ['Buy', 'Hold', 'Sell']
+                    },
+                    editable: true
                 }
             ]
         };
@@ -49,10 +61,10 @@ export default class extends Component {
 
         // grid events
         this.onGridReady = this.onGridReady.bind(this);
-        this.onSelectionChanged = this.onSelectionChanged.bind(this);
+        this.onRowClicked = this.onRowClicked.bind(this);
 
         // component events
-        this.updateSymbol = this.updateSymbol.bind(this);
+        this.updateQuote = this.updateQuote.bind(this);
     }
 
     numberFormatter(params) {
@@ -71,20 +83,16 @@ export default class extends Component {
         let rowData = map(this.props.selectedExchange.supportedStocks, symbol => this.exchangeService.getTicker(symbol));
         this.gridApi.addItems(rowData);
 
-        // select the first symbol to show the chart
-        this.gridApi.getModel().getRow(0).setSelected(true);
-
         this.gridApi.sizeColumnsToFit();
     }
 
-    onSelectionChanged() {
-        let selectedNode = this.gridApi.getSelectedNodes()[0];
-        this.props.onSelectionChanged(selectedNode ? selectedNode.data.symbol : null);
+    onRowClicked(params) {
+        this.props.onRowClicked(params.data.symbol);
     }
 
     componentWillMount() {
         this.props.selectedExchange.supportedStocks.forEach(symbol => {
-            this.exchangeService.addSubscriber(this.updateSymbol, symbol);
+            this.exchangeService.addSubscriber(this.updateQuote, symbol);
         });
     }
 
@@ -97,7 +105,6 @@ export default class extends Component {
             if (!this.gridApi) {
                 return;
             }
-            this.gridApi.deselectAll();
 
             const currentSymbols = this.props.selectedExchange.supportedStocks;
             const nextSymbols = nextProps.selectedExchange.supportedStocks;
@@ -105,13 +112,13 @@ export default class extends Component {
             // Unsubscribe to current ones that will be removed
             const symbolsRemoved = difference(currentSymbols, nextSymbols);
             forEach(symbolsRemoved, symbol => {
-                this.exchangeService.removeSubscriber(this.updateSymbol, symbol);
+                this.exchangeService.removeSubscriber(this.updateQuote, symbol);
             });
 
             // Subscribe to new ones that need to be added
             const symbolsAdded = difference(nextSymbols, currentSymbols);
             forEach(symbolsAdded, symbol => {
-                this.exchangeService.addSubscriber(this.updateSymbol, symbol);
+                this.exchangeService.addSubscriber(this.updateQuote, symbol);
             });
 
             // Remove ag-grid nodes as necessary
@@ -125,15 +132,11 @@ export default class extends Component {
             this.gridApi.removeItems(nodesToRemove);
 
             // Insert new ag-grid nodes as necessary
-            let rowData = map(symbolsAdded, symbol => this.exchangeService.getTicker(symbol));
-            this.gridApi.addItems(rowData);
-
-            // select the first symbol to show the chart
-            this.gridApi.getModel().getRow(0).setSelected(true);
+            this.gridApi.addItems(map(symbolsAdded, symbol => this.exchangeService.getTicker(symbol)));
         }
     }
 
-    updateSymbol(symbol) {
+    updateQuote(quote) {
         if (!this.gridApi) {
             // the grid isn't ready yet
             return;
@@ -144,13 +147,13 @@ export default class extends Component {
 
         this.gridApi.forEachNode(node => {
             const {data} = node;
-            if (data.symbol === symbol.symbol) {
+            if (data.symbol === quote.symbol) {
                 for (const def of this.state.columnDefs) {
-                    if (data[def.field] !== symbol[def.field]) {
+                    if (data[def.field] !== quote[def.field]) {
                         updatedCols.push(def.field);
                     }
                 }
-                assign(data, symbol);
+                assign(data, quote);
                 updatedNodes.push(node);
             }
         });
@@ -160,17 +163,16 @@ export default class extends Component {
 
     render() {
         return (
-            <div style={{height: 410, width: 800}}
+            <div style={{height: 500, width: 800}}
                  className="ag-fresh">
                 <AgGridReact
                     // properties
                     columnDefs={this.state.columnDefs}
                     enableSorting="true"
-                    rowSelection="single"
 
                     // events
                     onGridReady={this.onGridReady}
-                    onSelectionChanged={this.onSelectionChanged}>
+                    onRowClicked={this.onRowClicked}>
                 </AgGridReact>
             </div>
         );

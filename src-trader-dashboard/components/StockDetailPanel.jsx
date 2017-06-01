@@ -21,7 +21,7 @@ export default class extends Component {
         }
     }
 
-    componentWillReceiveProps(nextProps) {
+    componentWillReceiveProps(nextProps, nextState) {
         if (nextProps.selectedSymbol &&
             nextProps.selectedSymbol !== this.props.selectedSymbol) {
             let stockDetail = this.exchangeService.getTickerDetail(nextProps.selectedSymbol);
@@ -35,7 +35,7 @@ export default class extends Component {
         }
     }
 
-    shouldComponentUpdate(nextProps) {
+    shouldComponentUpdate(nextProps, nextState) {
         return nextProps.selectedSymbol !== this.props.selectedSymbol;
     }
 
