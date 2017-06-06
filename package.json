@@ -4,13 +4,18 @@
   "description": "Example Reach applicaiton using ag-Grid.",
   "main": "dist/ag-grid-react-example.js",
   "scripts": {
-    "full-width": "webpack-dev-server --config webpack.config.full-width.js --progress --colors --hot --inline",
-    "standard": "webpack-dev-server --config webpack.config.standard.js --progress --colors --hot --inline",
-    "grouped": "webpack-dev-server --config webpack.config.grouped.js --progress --colors --hot --inline",
     "trader": "webpack-dev-server --content-base src-trader-dashboard/ --config webpack.config.trader.js --progress --colors --hot --inline",
+    "examples": "webpack-dev-server --content-base src/ --config webpack.config.examples.js --progress --colors --hot --inline",
     "large": "webpack-dev-server --config webpack.config.large.js --progress --colors --hot --inline",
     "clean": "rimraf dist",
-    "build-standard": "npm run clean && webpack --config webpack.config.standard.js --progress --profile --bail"
+    "mkdirs": "mkdir -p dist/trader/dist dist/examples/dist",
+    "copy-examples": "cp -r images dist/examples && cp src/index.html dist/examples && cp dist/react-examples.js dist/examples/dist && cp -r src dist/examples",
+    "copy-trader": "cp src-trader-dashboard/index.html dist/trader && cp dist/react-trader.js dist/trader/dist",
+    "copy": "npm run copy-examples && npm run copy-trader",
+    "build-examples": "webpack --config webpack.config.examples.js --progress --profile --bail",
+    "build-dashboard": "webpack --config webpack.config.trader.js --progress --profile --bail",
+    "build-all": "npm run build-examples && npm run build-dashboard",
+    "build": "npm run clean && npm run mkdirs && npm run build-all && npm run copy"
   },
   "repository": {
     "type": "git",
@@ -29,31 +34,30 @@
   },
   "homepage": "http://www.ag-grid.com/",
   "devDependencies": {
-      "babel-core": "6.24.x",
-      "babel-loader": "6.4.x",
-      "babel-preset-es2015": "6.24.x",
-      "babel-preset-react": "6.24.x",
-      "babel-preset-stage-0": "6.24.x",
-      "babel-preset-stage-1": "6.24.x",
-      "css-loader": "0.23.x",
-      "style-loader": "0.13.x",
-      "webpack": "1.12.x",
-      "webpack-dev-server": "1.14.x"
-    },
-    "dependencies": {
-      "ag-grid": "10.0.x",
-      "ag-grid-enterprise": "10.0.x",
-      "ag-grid-react": "10.0.x",
-      "bootstrap": "^3.3.7",
-      "d3": "4.9.1",
-      "file-loader": "^0.11.1",
-      "lodash": "4.17.4",
-      "react": "15.5.x",
-      "react-dom": "15.5.x",
-      "react-redux": "5.0.x",
-      "redux": "3.6.x",
-      "rimraf": "2.5.x"
-    }
+    "babel-core": "6.24.x",
+    "babel-loader": "6.4.x",
+    "babel-preset-es2015": "6.24.x",
+    "babel-preset-react": "6.24.x",
+    "babel-preset-stage-0": "6.24.x",
+    "babel-preset-stage-1": "6.24.x",
+    "css-loader": "0.23.x",
+    "style-loader": "0.13.x",
+    "webpack": "1.12.x",
+    "webpack-dev-server": "1.14.x"
+  },
+  "dependencies": {
+    "ag-grid": "file:/Users/seanlandsman/IdeaProjects/ag/ag-grid/core-docs/ag-grid",
+    "ag-grid-enterprise": "10.0.x",
+    "ag-grid-react": "10.0.x",
+    "bootstrap": "^3.3.7",
+    "d3": "4.9.1",
+    "file-loader": "^0.11.1",
+    "lodash": "4.17.4",
+    "react": "15.5.x",
+    "react-dom": "15.5.x",
+    "react-redux": "5.0.x",
+    "redux": "3.6.x",
+    "rimraf": "2.5.x",
+    "url-search-params-polyfill": "^1.2.0"
+  }
 }
-
-
